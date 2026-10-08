@@ -1,4 +1,4 @@
-# Co-Lingo 🌏💬
+# Co-Lingo 
 
 **DECO3500 — Social & Mobile Computing | Team 5 | Semester 2, 2026**
 
