@@ -1,0 +1,14 @@
+# macOS / operating system
+.DS_Store
+Thumbs.db
+# local editor and secrets
+.vscode/
+.idea/
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+coverage/
+*.log
