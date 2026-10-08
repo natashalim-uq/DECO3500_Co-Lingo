@@ -1,5 +1,47 @@
-# This repository is the working space for your DECO3500 team project.
-
-Your team should use this repository to store your prototype code, design artefacts, documentation, project evidence, testing materials, deployment notes, and other relevant project work.
-
-Teams must keep the major folders for specification, design, documentation, evidence, source code, testing, and deployment. Teams may adapt the internal source-code structure to suit their project architecture.
+DECO3500_Co-Lingo
+│
+├── README.md
+│
+├── prototype/
+│   ├── source-code/
+│   └── README.md
+│
+├── research/
+│   ├── literature/
+│   ├── interviews/
+│   ├── personas/
+│   ├── affinity-diagram/
+│   └── research-findings.md
+│
+├── design/
+│   ├── early-concepts/
+│   ├── low-fidelity/
+│   ├── mid-fidelity/
+│   ├── high-fidelity/
+│   ├── figma/
+│   └── design-decisions.md
+│
+├── evaluation/
+│   ├── prototype-1/
+│   ├── prototype-2/
+│   └── findings.md
+│
+├── requirements/
+│   ├── experience-requirements.md
+│   └── user-requirements.md
+│
+├── evidence/
+│   ├── photos/
+│   ├── screenshots/
+│   └── testing/
+│
+├── tradeshow/
+│   ├── poster.pdf
+│   ├── pitch.md
+│   └── promotional-material/
+│
+├── team/
+│   └── team-charter.pdf
+│
+└── docs/
+    └── references.md
