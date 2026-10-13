@@ -7,7 +7,7 @@ import {
   PressStart2P_400Regular,
 } from "@expo-google-fonts/press-start-2p";
 import Face from "./components/Face";
-import { CHUNK_MS, useListener } from "./hooks/useListener";
+import { CHUNK_MS, useListener } from "./hooks/useMeetingListener";
 import { extractQuestion } from "./services/trigger";
 import { speak, stopSpeaking } from "./services/speech";
 import type { RobotState } from "./types/robot";
