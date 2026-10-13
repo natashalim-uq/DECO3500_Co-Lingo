@@ -1,0 +1,1 @@
+export type RobotState = "sleep" | "loading" | "active" | "speaking" | "timeout";
