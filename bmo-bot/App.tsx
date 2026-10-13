@@ -11,12 +11,14 @@ import { CHUNK_MS, useListener } from "./hooks/useMeetingListener";
 import { extractQuestion } from "./services/trigger";
 import { speak, stopSpeaking } from "./services/speech";
 import type { RobotState } from "./types/robot";
+import { askBmo } from "./services/llm";
 
 const DEBUG = true; // chips + "heard" text; set to false for the demo
 const STATES: RobotState[] = ["sleep", "active", "loading", "speaking", "timeout"];
 const MAX_TRANSCRIPT_LINES = 150; // ~20 minutes of meeting at 8 s per chunk
 const ENDS_SENTENCE = /[.?!]["')\]]?\s*$/;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const CONTEXT_LINES = 40; // ~5 minutes of meeting sent to the LLM as context
 
 export default function App() {
   useKeepAwake();
@@ -123,18 +125,23 @@ export default function App() {
       if (cancelled()) return;
 
       setState("loading");
-      // NEXT STEP: ask the LLM here, passing transcript.current as meeting context
-      await delay(1500);
+      const [reply] = await Promise.all([
+        askBmo(question, transcript.current.slice(-CONTEXT_LINES)),
+        delay(1200), // keep the thinking face on screen long enough to read
+      ]);
       if (cancelled()) return;
 
       setState("speaking");
-      await speak(`You asked: ${question}`);
+      await speak(reply);
       if (cancelled()) return;
 
       setState("active");
       await listener.start();
     } catch (e) {
-      if (!cancelled()) fail(e);
+      if (!cancelled()) {
+        const limited = e instanceof Error && e.message === "RATE_LIMIT";
+        fail(e, limited ? "TOO MANY QUESTIONS! WAIT A MINUTE" : "CAN'T REACH MY BRAIN");
+      }
     } finally {
       if (!cancelled()) busy.current = false;
     }
