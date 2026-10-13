@@ -2,7 +2,13 @@ const GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions";
 const API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY;
 
 // Tried in order: best quality first, then a faster fallback with higher limits
-const MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+// Groq retired the Llama models on 2026-08-16; these are the current replacements.
+// Optional: set EXPO_PUBLIC_LLM_MODEL in .env to try a different model first.
+const MODELS = [
+  process.env.EXPO_PUBLIC_LLM_MODEL,
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+].filter((m): m is string => !!m);
 const TIMEOUT_MS = 15000;
 
 const SYSTEM_PROMPT = `You are BMO, a small, friendly robot who sits in meetings and helps new employees understand corporate jargon. Many of the people you help are not native English speakers.
@@ -33,7 +39,16 @@ async function callModel(
         "Content-Type": "application/json",
         Authorization: `Bearer ${API_KEY}`,
       },
-      body: JSON.stringify({ model, messages, temperature: 0.4, max_tokens: 220 }),
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.4,
+        // these models "think" before answering, and the thinking counts toward
+        // this limit, so it needs headroom or the spoken answer comes back empty
+        max_completion_tokens: 800,
+        reasoning_effort: "low", // keeps answers fast
+        include_reasoning: false, // we only want the final answer, not the thinking
+      }),
       signal: controller.signal,
     });
 
