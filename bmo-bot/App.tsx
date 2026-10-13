@@ -7,36 +7,138 @@ import {
   PressStart2P_400Regular,
 } from "@expo-google-fonts/press-start-2p";
 import Face from "./components/Face";
+import { CHUNK_MS, useListener } from "./hooks/useListener";
+import { extractQuestion } from "./services/trigger";
+import { speak, stopSpeaking } from "./services/speech";
 import type { RobotState } from "./types/robot";
 
-const DEBUG = true; // set to false when you no longer want the state chips
+const DEBUG = true; // chips + "heard" text; set to false for the demo
 const STATES: RobotState[] = ["sleep", "active", "loading", "speaking", "timeout"];
+const MAX_TRANSCRIPT_LINES = 150; // ~20 minutes of meeting at 8 s per chunk
+const ENDS_SENTENCE = /[.?!]["')\]]?\s*$/;
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function App() {
   useKeepAwake();
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
   const [state, setState] = useState<RobotState>("sleep");
-  const wakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [errorMessage, setErrorMessage] = useState("SOMETHING WENT WRONG");
+  const [lastHeard, setLastHeard] = useState("");
+
+  const transcript = useRef<string[]>([]);
+  const pendingQuestion = useRef<string | null>(null);
+  const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const busy = useRef(false);
+  const runId = useRef(0);
+
+  const listener = useListener({
+    onTranscript: handleTranscript,
+    onFatalError: (e) => fail(e, "CAN'T HEAR OR REACH THE INTERNET"),
+  });
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
       // not supported on web, ignore
     });
-    return () => {
-      if (wakeTimer.current) clearTimeout(wakeTimer.current);
-    };
   }, []);
 
-  const goTo = (next: RobotState) => {
-    if (wakeTimer.current) clearTimeout(wakeTimer.current);
-    setState(next);
-  };
+  function clearPending() {
+    if (pendingTimer.current) clearTimeout(pendingTimer.current);
+    pendingTimer.current = null;
+    pendingQuestion.current = null;
+  }
 
-  const handleStart = () => {
-    goTo("loading");
-    // Later: this is where we'll ask for mic permission and start recording
-    wakeTimer.current = setTimeout(() => setState("active"), 1500);
-  };
+  function resetTo(next: RobotState) {
+    runId.current += 1; // cancels any answer() that is still running
+    stopSpeaking();
+    listener.stop();
+    clearPending();
+    busy.current = false;
+    setState(next);
+  }
+
+  function fail(error: unknown, message = "SOMETHING WENT WRONG") {
+    console.warn("BMO error:", error);
+    setErrorMessage(message);
+    resetTo("timeout");
+  }
+
+  async function handleStart() {
+    setState("loading");
+    try {
+      await Promise.all([listener.start(), delay(1200)]);
+      setState("active");
+    } catch (e) {
+      const denied = e instanceof Error && e.message === "MIC_DENIED";
+      fail(e, denied ? "MIC ACCESS NEEDED" : "SOMETHING WENT WRONG");
+    }
+  }
+
+  function handleTranscript(text: string) {
+    if (busy.current) return;
+    console.log("Heard:", text);
+    setLastHeard(text);
+
+    transcript.current.push(text);
+    if (transcript.current.length > MAX_TRANSCRIPT_LINES) transcript.current.shift();
+
+    // The question started in the previous chunk and continues in this one
+    if (pendingQuestion.current !== null) {
+      const full = `${pendingQuestion.current} ${text}`.trim();
+      clearPending();
+      answer(full);
+      return;
+    }
+
+    const question = extractQuestion(text);
+    if (question === null) return; // no trigger phrase, just meeting talk
+
+    if (question && ENDS_SENTENCE.test(question)) {
+      answer(question);
+      return;
+    }
+
+    // Trigger heard but the question isn't finished (cut off at the chunk edge).
+    // Wait for the next chunk; if nothing comes, use what we have.
+    pendingQuestion.current = question;
+    pendingTimer.current = setTimeout(() => {
+      const q = pendingQuestion.current;
+      clearPending();
+      if (q) answer(q);
+    }, CHUNK_MS + 6000);
+  }
+
+  async function answer(question: string) {
+    if (busy.current) return;
+    busy.current = true;
+    const id = ++runId.current;
+    const cancelled = () => id !== runId.current;
+
+    try {
+      await listener.stop(); // don't listen while the robot talks
+      if (cancelled()) return;
+
+      setState("speaking");
+      await speak("Let me think!");
+      if (cancelled()) return;
+
+      setState("loading");
+      // NEXT STEP: ask the LLM here, passing transcript.current as meeting context
+      await delay(1500);
+      if (cancelled()) return;
+
+      setState("speaking");
+      await speak(`You asked: ${question}`);
+      if (cancelled()) return;
+
+      setState("active");
+      await listener.start();
+    } catch (e) {
+      if (!cancelled()) fail(e);
+    } finally {
+      if (!cancelled()) busy.current = false;
+    }
+  }
 
   if (!fontsLoaded) return <View style={styles.root} />;
 
@@ -52,20 +154,27 @@ export default function App() {
       )}
 
       {state === "timeout" && (
-        <Pressable style={styles.overlay} onPress={() => goTo("sleep")}>
-          <Text style={styles.message}>OOPS! SOMETHING WENT WRONG</Text>
+        <Pressable style={styles.overlay} onPress={() => resetTo("sleep")}>
+          <Text style={styles.message}>{errorMessage}</Text>
           <Text style={styles.subMessage}>TAP TO RESTART</Text>
         </Pressable>
       )}
 
       {DEBUG && (
-        <View style={styles.debug}>
-          {STATES.map((s) => (
-            <Pressable key={s} onPress={() => goTo(s)} style={styles.chip}>
-              <Text style={styles.chipText}>{s}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <>
+          <View style={styles.debug}>
+            {STATES.map((s) => (
+              <Pressable key={s} onPress={() => resetTo(s)} style={styles.chip}>
+                <Text style={styles.chipText}>{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+          {!!lastHeard && state !== "sleep" && state !== "timeout" && (
+            <Text style={styles.heard} numberOfLines={2}>
+              heard: {lastHeard}
+            </Text>
+          )}
+        </>
       )}
     </View>
   );
@@ -95,11 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#A2B36A",
     overflow: "hidden",
   },
-  message: {
-    fontFamily: "PressStart2P_400Regular",
-    fontSize: 18,
-    color: "black",
-  },
+  message: { fontFamily: "PressStart2P_400Regular", fontSize: 18, color: "black" },
   subMessage: {
     fontFamily: "PressStart2P_400Regular",
     fontSize: 12,
@@ -120,4 +225,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   chipText: { color: "white" },
+  heard: {
+    position: "absolute",
+    bottom: 10,
+    left: 20,
+    right: 20,
+    textAlign: "center",
+    color: "#396337",
+    fontSize: 14,
+  },
 });
