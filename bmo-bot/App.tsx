@@ -12,9 +12,9 @@ import { extractQuestion } from "./services/trigger";
 import { speak, stopSpeaking } from "./services/speech";
 import type { RobotState } from "./types/robot";
 import { askBmo } from "./services/llm";
+import VoiceTuner from "./components/VoiceTuner";
 
 const DEBUG = true; // chips + "heard" text; set to false for the demo
-const STATES: RobotState[] = ["sleep", "active", "loading", "speaking", "timeout"];
 const MAX_TRANSCRIPT_LINES = 150; // ~20 minutes of meeting at 8 s per chunk
 const ENDS_SENTENCE = /[.?!]["')\]]?\s*$/;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -169,13 +169,7 @@ export default function App() {
 
       {DEBUG && (
         <>
-          <View style={styles.debug}>
-            {STATES.map((s) => (
-              <Pressable key={s} onPress={() => resetTo(s)} style={styles.chip}>
-                <Text style={styles.chipText}>{s}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <VoiceTuner />
           {!!lastHeard && state !== "sleep" && state !== "timeout" && (
             <Text style={styles.heard} numberOfLines={2}>
               heard: {lastHeard}
@@ -183,6 +177,7 @@ export default function App() {
           )}
         </>
       )}
+
     </View>
   );
 }
