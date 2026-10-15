@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Voice } from "expo-speech";
 import {
   getVoiceSettings,
@@ -74,9 +74,17 @@ export default function VoiceTuner() {
 
   return (
     <View style={styles.wrap} pointerEvents="box-none">
-      <Pressable onPress={toggle} style={styles.icon}>
-        <Text style={styles.iconText}>{open ? "✕" : "🔊"}</Text>
-      </Pressable>
+        <Pressable onPress={toggle} style={styles.icon}>
+            {open ? (
+            <Text style={styles.iconText}>✕</Text>
+            ) : (
+            <Image
+                source={require("../assets/sound-icon.png")}
+                style={styles.iconImage}
+                resizeMode="contain"
+            />
+            )}
+        </Pressable>
 
       {open && (
         <View style={styles.panel}>
@@ -101,6 +109,7 @@ export default function VoiceTuner() {
             <Text style={styles.value}>speed {rate.toFixed(2)}</Text>
             <Btn label="+" onPress={() => changeRate(0.05)} />
           </View>
+        
 
           <Pressable onPress={test} style={styles.test}>
             <Text style={styles.btnText}>TEST VOICE</Text>
@@ -162,4 +171,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   btnText: { color: "white", fontWeight: "bold" },
+
+  iconImage: { width: 24, height: 24 },
 });
