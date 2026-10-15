@@ -18,7 +18,7 @@ const DEBUG = true; // chips + "heard" text; set to false for the demo
 const MAX_TRANSCRIPT_LINES = 150; // ~20 minutes of meeting at 8 s per chunk
 const ENDS_SENTENCE = /[.?!]["')\]]?\s*$/;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const CONTEXT_LINES = 40; // ~5 minutes of meeting sent to the LLM as context
+const CONTEXT_LINES = 100; // ~13 minutes of meeting sent to the LLM as context
 
 export default function App() {
   useKeepAwake();
