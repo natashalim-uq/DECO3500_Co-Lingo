@@ -8,17 +8,20 @@ import {
 } from "@expo-google-fonts/press-start-2p";
 import Face from "./components/Face";
 import { CHUNK_MS, useListener } from "./hooks/useMeetingListener";
-import { extractQuestion } from "./services/trigger";
+import { extractQuestion, isDismissal } from "./services/trigger";
 import { speak, stopSpeaking } from "./services/speech";
 import type { RobotState } from "./types/robot";
 import { askBmo } from "./services/llm";
 import VoiceTuner from "./components/VoiceTuner";
 
+
 const DEBUG = true; // chips + "heard" text; set to false for the demo
 const MAX_TRANSCRIPT_LINES = 150; // ~20 minutes of meeting at 8 s per chunk
 const ENDS_SENTENCE = /[.?!]["')\]]?\s*$/;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const CONTEXT_LINES = 100; // ~13 minutes of meeting sent to the LLM as context
+const CONTEXT_LINES = 40; // ~5 minutes of meeting sent to the LLM as context
+const GOODBYE_LINES = ["Okay, bye bye!", "See you later!", "Going to sleep now!"];
+const pick = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
 
 export default function App() {
   useKeepAwake();
@@ -50,12 +53,19 @@ export default function App() {
     pendingQuestion.current = null;
   }
 
+    function clearMemory() {
+    transcript.current = [];
+    clearPending();
+    setLastHeard("");
+  }
+
   function resetTo(next: RobotState) {
     runId.current += 1; // cancels any answer() that is still running
     stopSpeaking();
     listener.stop();
     clearPending();
     busy.current = false;
+    if (next === "sleep") clearMemory(); 
     setState(next);
   }
 
@@ -66,6 +76,8 @@ export default function App() {
   }
 
   async function handleStart() {
+    clearMemory();
+    console.log("BMO remembers", transcript.current.length, "lines:", transcript.current.slice(-CONTEXT_LINES));
     setState("loading");
     try {
       await Promise.all([listener.start(), delay(1200)]);
@@ -80,6 +92,12 @@ export default function App() {
     if (busy.current) return;
     console.log("Heard:", text);
     setLastHeard(text);
+
+    // "Thanks BMO, that will be all" -> say goodbye and go back to sleep
+    if (isDismissal(text)) {
+      goToSleep();
+      return;
+    }
 
     transcript.current.push(text);
     if (transcript.current.length > MAX_TRANSCRIPT_LINES) transcript.current.shift();
@@ -108,6 +126,29 @@ export default function App() {
       clearPending();
       if (q) answer(q);
     }, CHUNK_MS + 6000);
+  }
+
+  async function goToSleep() {
+    if (busy.current) return;
+    busy.current = true;
+    const id = ++runId.current;
+    const cancelled = () => id !== runId.current;
+
+    try {
+      await listener.stop(); // stop listening first
+      if (cancelled()) return;
+      clearPending();
+
+      setState("speaking");
+      await speak(pick(GOODBYE_LINES));
+      if (cancelled()) return;
+
+      resetTo("sleep"); // back to "PRESS TO START", and wipes the meeting memory
+    } catch (e) {
+      if (!cancelled()) fail(e);
+    } finally {
+      if (!cancelled()) busy.current = false;
+    }
   }
 
   async function answer(question: string) {

@@ -2,8 +2,8 @@ import * as Speech from "expo-speech";
 
 // ---- BMO's default voice: paste your favourite settings from the voice tuner here ----
 const DEFAULT_VOICE_NAME = ""; // e.g. "Samantha". Empty = pick the best English voice automatically
-const DEFAULT_PITCH = 0.7; // 1 = normal, higher = squeakier/younger (range 0.5 to 2)
-const DEFAULT_RATE = 0.8; // 1 = normal, a bit under 1 is easier for non-native listeners
+const DEFAULT_PITCH = 0.75; // 1 = normal, higher = squeakier/younger (range 0.5 to 2)
+const DEFAULT_RATE = 0.9; // 1 = normal, a bit under 1 is easier for non-native listeners
 const PREFERRED_NAMES = ["Samantha", "Nicky", "Zoe", "Ava", "Allison"];
 
 type VoiceSettings = { voiceId?: string; pitch: number; rate: number };
