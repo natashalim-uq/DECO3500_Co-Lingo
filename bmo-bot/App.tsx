@@ -35,6 +35,8 @@ export default function App() {
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const busy = useRef(false);
   const runId = useRef(0);
+  const tail = useRef(""); // last few words of the previous chunk
+
 
   const listener = useListener({
     onTranscript: handleTranscript,
@@ -51,6 +53,7 @@ export default function App() {
     if (pendingTimer.current) clearTimeout(pendingTimer.current);
     pendingTimer.current = null;
     pendingQuestion.current = null;
+    tail.current = "";
   }
 
     function clearMemory() {
@@ -92,6 +95,8 @@ export default function App() {
     if (busy.current) return;
     console.log("Heard:", text);
     setLastHeard(text);
+    const combined = `${tail.current} ${text}`.trim();
+    tail.current = text.split(/\s+/).slice(-8).join(" ");
 
     // "Thanks BMO, that will be all" -> say goodbye and go back to sleep
     if (isDismissal(text)) {
@@ -110,7 +115,7 @@ export default function App() {
       return;
     }
 
-    const question = extractQuestion(text);
+    const question = extractQuestion(combined);
     if (question === null) return; // no trigger phrase, just meeting talk
 
     if (question && ENDS_SENTENCE.test(question)) {
@@ -154,6 +159,7 @@ export default function App() {
   async function answer(question: string) {
     if (busy.current) return;
     busy.current = true;
+    tail.current = "";
     const id = ++runId.current;
     const cancelled = () => id !== runId.current;
 
