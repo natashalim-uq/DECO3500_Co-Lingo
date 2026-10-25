@@ -2,7 +2,7 @@
 
 **DECO3500 | Team 05 | Semester 2, 2026**  
 **Repository:** [Co-Lingo](https://github.com/natashalim-uq/DECO3500_Co-Lingo)  
-**Related Wiki pages:** [[Design-Journal]] · [[Ethical-Considerations]]
+
 
 > **Project overview:** Co-Lingo's **BMO** is a desk-sized robot and explanation interface designed to help newcomers understand corporate jargon while workplace conversations are happening. Our journey included a real Week 8 **Duolingo-inspired Figma app prototype**, a **cardboard robot using ChatGPT as an early explanation interface**, subsequent refinement of the physical robot, and a **Week 12 tradeshow**. The final focus is the BMO companion—not a separate phone-based learning app. Continuous contextual listening, meeting recaps and multilingual modes remain **future design considerations**, not claimed prototype functionality.
 
