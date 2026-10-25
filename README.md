@@ -68,7 +68,7 @@ The project pivoted in Week 4 from an earlier fashion domain, ran three rounds o
 | `research/` | Literature, interviews, participant-safe findings |
 | `requirements/` | Evidence-linked experience requirements |
 | `design/` | Concepts, low- and high-fidelity iterations, Figma references |
-| `prototype/` | Code or link and demonstration instructions |
+| `prototype/` | Images of the prototype and its progression |
 | `evaluation/` | Test methods, findings, changes |
 | `evidence/` | Consented and anonymised media, plus the evidence inventory |
 | `team/` | Roles, charter, contribution log |
