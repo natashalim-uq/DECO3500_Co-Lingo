@@ -65,7 +65,3 @@ We take responsibility for **honestly explaining the prototype's capabilities**,
 - Ethics for Designers. (n.d.). [*Ethical Disclaimer*](https://www.ethicsfordesigners.com/ethical-disclaimer). The five-step ethical review method used above.
 - Loke, L., & Matthews, B. (2020). *Scaffolding of interaction design education towards ethical design thinking*. In *Design Thinking in Higher Education* (pp. 165–181). Springer. https://doi.org/10.1007/978-981-15-5780-4_8 (context for values-sensitive ethical reflection; not claimed as the method directly applied here).
 - Co-Lingo Team 5. (2026). [Round 1 interview synthesis](https://github.com/natashalim-uq/DECO3500_Co-Lingo/blob/main/research/interviews/interviewround1.md); [Round 2 interview synthesis](https://github.com/natashalim-uq/DECO3500_Co-Lingo/blob/main/research/interviews/interviewround2.md); [formative prototype feedback](https://github.com/natashalim-uq/DECO3500_Co-Lingo/blob/main/evaluation/prototype-2/Protoype_Overview.md).
-
----
-
-**Related pages:** [[Primary-User-Context-Research-Data-Collection-and-Analysis]] · [[Problem-and-Solution]] · [[Prototype-Access-and-Instructions]] · [[Design-Process-Overview]]
