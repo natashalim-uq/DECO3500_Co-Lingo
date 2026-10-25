@@ -80,10 +80,9 @@ The project pivoted in Week 4 from an earlier fashion domain, ran three rounds o
 
 Ameera Tawfiqa · Isabelle (Ya Jie) Han · Natasha Lim · Nayla Pramita · Trent Ng
 
-## Ethics, limitations and references
+## Ethical Concerns and References
 
 BMO is a proof of concept, not a validated workplace system. It is designed around a problem we have not fully resolved: the same visibility that makes asking feel normal can also make someone self-conscious, and the device being company property means any discretion it offers is discretion from coworkers rather than from an employer.
 
 - [Ethical Considerations](wiki-import/Ethical-Considerations.md)
-- [Limitations](docs/limitations.md)
 - [References](docs/references.md)
